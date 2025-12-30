@@ -14,11 +14,7 @@ app = FastAPI()
 init_db()
 
 # Configuration des origines autorisées (CORS)
-origins = (
-    ["*"]
-    if os.getenv("ENV") != "production"
-    else ["https://ton-app-render.com"]
-)
+origins = ["*"]  # Autorise toutes les origines (Flutter mobile n'est pas concerné par CORS)
 
 app.add_middleware(
     CORSMiddleware,
@@ -41,4 +37,4 @@ def root():
 # Lancement local
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
