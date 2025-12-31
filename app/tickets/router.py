@@ -6,7 +6,10 @@ from app.tickets import crud
 
 router = APIRouter()
 
-@router.get("/")
+from typing import List
+from app.schemas import TicketSchema  # Assure-toi d'importer le schéma
+
+@router.get("/", response_model=List[TicketSchema])
 def list_tickets(db: Session = Depends(get_db)):
     return crud.get_all_tickets(db)
 
