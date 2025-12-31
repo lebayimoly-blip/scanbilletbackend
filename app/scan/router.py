@@ -5,12 +5,12 @@ from app.models import Ticket
 
 router = APIRouter()
 
-@router.post("/scan/{code}")
+@router.post("/{code}")
 def scan_ticket_path(code: str, db: Session = Depends(get_db)):
     print(f"[SCAN PATH] Code reçu : {code}")
     return _validate_ticket(code, db)
 
-@router.post("/scan")
+@router.post("/")
 def scan_ticket_json(payload: dict = Body(...), db: Session = Depends(get_db)):
     code = payload.get("code")
     if not code:
