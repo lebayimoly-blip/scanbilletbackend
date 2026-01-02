@@ -12,7 +12,6 @@ from app.database import get_db
 
 router = APIRouter()
 
-
 # 🔹 Statistiques globales
 @router.get("/global")
 def get_scan_stats(
