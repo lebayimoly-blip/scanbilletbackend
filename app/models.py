@@ -8,6 +8,7 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True)
     scans = relationship("Scan", back_populates="user")
+    hashed_password = Column(String)
 
 class Ticket(Base):
     __tablename__ = "tickets"
