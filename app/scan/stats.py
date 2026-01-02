@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, Query
 from fastapi.responses import StreamingResponse, FileResponse
 from reportlab.pdfgen import canvas
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 
 from app.models import Scan, User
 from app.database import get_db
@@ -31,7 +32,7 @@ def get_scan_stats(
     scanned_today = db.query(Scan).filter(Scan.timestamp >= start).count()
 
     scans_by_user = (
-        db.query(User.username, db.func.count(Scan.id))
+        db.query(User.username, func.count(Scan.id))
         .join(Scan, Scan.user_id == User.id)
         .filter(Scan.timestamp >= start)
         .group_by(User.username)
