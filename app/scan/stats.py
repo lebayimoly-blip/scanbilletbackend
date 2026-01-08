@@ -1,5 +1,6 @@
 from datetime import datetime
 from io import StringIO
+from app.models import Scan, User, Ticket
 
 import csv
 from fastapi import APIRouter, Depends, Query
@@ -7,8 +8,6 @@ from fastapi.responses import StreamingResponse, FileResponse
 from reportlab.pdfgen import canvas
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-
-from app.models import Scan, User
 from app.database import get_db
 
 router = APIRouter()

@@ -9,6 +9,8 @@ class User(Base):
     username = Column(String, unique=True, index=True)
     scans = relationship("Scan", back_populates="user")
     hashed_password = Column(String)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    
 
 class Ticket(Base):
     __tablename__ = "tickets"
@@ -17,6 +19,8 @@ class Ticket(Base):
     voyageur = Column(String)
     validé = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow) # ✅ Ajout ici
+    user_id = Column(Integer, ForeignKey("users.id"))
+    user = relationship("User", back_populates="tickets")
 
 class Scan(Base):
     __tablename__ = "scans"
