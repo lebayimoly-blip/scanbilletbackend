@@ -14,10 +14,8 @@ app = FastAPI()
 # Initialisation de la base de données
 init_db()
 
-origins = [
-    "http://localhost:27170",  # Flutter Web local
-    "https://scanbilletfrontend.onrender.com",  # ton frontend déployé (si applicable)
-]
+# Configuration des origines autorisées (CORS)
+origins = ["*"]  # Autorise toutes les origines (Flutter mobile n'est pas concerné par CORS)
 
 app.add_middleware(
     CORSMiddleware,
