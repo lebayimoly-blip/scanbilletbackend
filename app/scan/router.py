@@ -18,16 +18,32 @@ def scan_ticket_json(payload: dict = Body(...), db: Session = Depends(get_db)):
     print(f"[SCAN JSON] Code reçu : {code}")
     return _validate_ticket(code, db)
 
+from app.models import Scan, User  # Assure-toi que c’est bien importé
+from datetime import datetime
+
 def _validate_ticket(code: str, db: Session):
     ticket = db.query(Ticket).filter(Ticket.code == code).first()
     if not ticket:
-        print(f"[SCAN] Ticket {code} introuvable")
         raise HTTPException(status_code=404, detail="Ticket non trouvé")
     if ticket.validé:
-        print(f"[SCAN] Ticket {code} déjà validé")
         raise HTTPException(status_code=400, detail="Ticket déjà validé")
 
+    # Marquer le ticket comme validé
     ticket.validé = True
+
+    # Récupérer l'utilisateur (si lié à une session ou token)
+    # Ici on suppose un utilisateur par défaut pour l'exemple
+    user = db.query(User).filter(User.username == "moly").first()  # à adapter selon ton auth
+
+    # Créer un enregistrement de scan
+    scan = Scan(
+        ticket_id=ticket.id,
+        user_id=user.id if user else None,
+        timestamp=datetime.now(),
+        validated=True
+    )
+    db.add(scan)
     db.commit()
-    print(f"[SCAN] Ticket {code} validé avec succès")
+
     return {"message": f"Ticket {code} validé avec succès"}
+
