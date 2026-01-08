@@ -27,9 +27,10 @@ def get_scan_stats(
     elif period == "year":
         start = datetime(now.year, 1, 1)
 
-    total = db.query(Scan.ticket_id).distinct().count()
-    valides = db.query(Scan.ticket_id).filter(Scan.validated == True).distinct().count()
-    scanned_today = db.query(Scan).filter(Scan.timestamp >= start).count()
+    # Appliquer le filtre à toutes les stats
+    total = db.query(Scan.ticket_id).filter(Scan.timestamp >= start).distinct().count()
+    valides = db.query(Scan.ticket_id).filter(Scan.validated == True, Scan.timestamp >= start).distinct().count()
+    scanned = db.query(Scan).filter(Scan.timestamp >= start).count()
 
     scans_by_user = (
         db.query(User.username, func.count(Scan.id))
@@ -42,7 +43,7 @@ def get_scan_stats(
     return {
         "total": total,
         "valides": valides,
-        "scanned_today": scanned_today,
+        "scanned_today": scanned,
         "scans_by_user_today": [
             {"user": username, "count": count} for username, count in scans_by_user
         ]
