@@ -14,37 +14,50 @@ from app.database import get_db
 router = APIRouter()
 
 # 🔹 Statistiques globales
+
 @router.get("/global")
-def get_scan_stats(
-    period: str = Query("today", enum=["today", "month", "year"]),
+def get_global_stats(
+    period: str = Query("today", enum=["today", "month", "year", "all"]),
     db: Session = Depends(get_db)
 ):
     now = datetime.now()
+
+    # Définir la date de début selon la période
     if period == "today":
         start = datetime(now.year, now.month, now.day)
     elif period == "month":
         start = datetime(now.year, now.month, 1)
     elif period == "year":
         start = datetime(now.year, 1, 1)
+    else:
+        start = None  # "all" → pas de filtre
 
-    # Appliquer le filtre à toutes les stats
-    total = db.query(Scan.ticket_id).filter(Scan.timestamp >= start).distinct().count()
-    valides = db.query(Scan.ticket_id).filter(Scan.validated == True, Scan.timestamp >= start).distinct().count()
-    scanned = db.query(Scan).filter(Scan.timestamp >= start).count()
+    # Base query
+    base_query = db.query(Scan)
+    if start:
+        base_query = base_query.filter(Scan.timestamp >= start)
 
+    # Statistiques globales
+    total = base_query.with_entities(Scan.ticket_id).distinct().count()
+    valides = base_query.filter(Scan.validated == True).with_entities(Scan.ticket_id).distinct().count()
+    scanned = base_query.count()
+
+    # Scans par utilisateur
     scans_by_user = (
         db.query(User.username, func.count(Scan.id))
         .join(Scan, Scan.user_id == User.id)
-        .filter(Scan.timestamp >= start)
-        .group_by(User.username)
-        .all()
     )
+    if start:
+        scans_by_user = scans_by_user.filter(Scan.timestamp >= start)
+
+    scans_by_user = scans_by_user.group_by(User.username).all()
 
     return {
+        "period": period,
         "total": total,
         "valides": valides,
-        "scanned_today": scanned,
-        "scans_by_user_today": [
+        "scanned": scanned,
+        "scans_by_user": [
             {"user": username, "count": count} for username, count in scans_by_user
         ]
     }
