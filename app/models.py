@@ -7,10 +7,10 @@ class User(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True)
-    scans = relationship("Scan", back_populates="user")
     hashed_password = Column(String)
-    user_id = Column(Integer, ForeignKey("users.id"))
     
+    scans = relationship("Scan", back_populates="user")
+    tickets = relationship("Ticket", back_populates="user")
 
 class Ticket(Base):
     __tablename__ = "tickets"
