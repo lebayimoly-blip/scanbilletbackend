@@ -16,13 +16,12 @@ router = APIRouter()
 # 🔹 Statistiques globales
 
 @router.get("/global")
-def get_global_stats(
+def get_ticket_stats(
     period: str = Query("today", enum=["today", "month", "year", "all"]),
     db: Session = Depends(get_db)
 ):
     now = datetime.now()
 
-    # Définir la date de début selon la période
     if period == "today":
         start = datetime(now.year, now.month, now.day)
     elif period == "month":
@@ -30,38 +29,34 @@ def get_global_stats(
     elif period == "year":
         start = datetime(now.year, 1, 1)
     else:
-        start = None  # "all" → pas de filtre
+        start = None
 
-    # Base query
-    base_query = db.query(Scan)
+    query = db.query(Ticket)
     if start:
-        base_query = base_query.filter(Scan.timestamp >= start)
+        query = query.filter(Ticket.created_at >= start)
 
-    # Statistiques globales
-    total = base_query.with_entities(Scan.ticket_id).distinct().count()
-    valides = base_query.filter(Scan.validated == True).with_entities(Scan.ticket_id).distinct().count()
-    scanned = base_query.count()
+    total = query.count()
+    valides = query.filter(Ticket.validé == True).count()
 
-    # Scans par utilisateur
-    scans_by_user = (
-        db.query(User.username, func.count(Scan.id))
-        .join(Scan, Scan.user_id == User.id)
+    # Répartition par utilisateur (si les tickets sont liés à un user_id)
+    stats_by_user = (
+        db.query(User.username, func.count(Ticket.id))
+        .join(Ticket, Ticket.user_id == User.id)
     )
     if start:
-        scans_by_user = scans_by_user.filter(Scan.timestamp >= start)
+        stats_by_user = stats_by_user.filter(Ticket.created_at >= start)
 
-    scans_by_user = scans_by_user.group_by(User.username).all()
+    stats_by_user = stats_by_user.group_by(User.username).all()
 
     return {
         "period": period,
         "total": total,
         "valides": valides,
-        "scanned": scanned,
+        "scanned": valides,
         "scans_by_user": [
-            {"user": username, "count": count} for username, count in scans_by_user
+            {"user": username, "count": count} for username, count in stats_by_user
         ]
     }
-
 
 # 🔹 Statistiques d’un utilisateur
 @router.get("/user/{username}")

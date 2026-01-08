@@ -16,6 +16,7 @@ class Ticket(Base):
     code = Column(String, unique=True, index=True)
     voyageur = Column(String)
     validé = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow) # ✅ Ajout ici
 
 class Scan(Base):
     __tablename__ = "scans"
