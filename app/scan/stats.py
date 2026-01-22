@@ -13,7 +13,6 @@ from app.database import get_db
 router = APIRouter()
 
 # 🔹 Statistiques globales
-
 @router.get("/global")
 def get_ticket_stats(
     period: str = Query("today", enum=["today", "month", "year", "all"]),
@@ -30,20 +29,29 @@ def get_ticket_stats(
     else:
         start = None
 
-    query = db.query(Ticket)
+    # 🎟️ Tickets
+    ticket_query = db.query(Ticket)
     if start:
-        query = query.filter(Ticket.created_at >= start)
+        ticket_query = ticket_query.filter(Ticket.created_at >= start)
 
-    total = query.count()
-    valides = query.filter(Ticket.validé == True).count()
+    total = ticket_query.count()
+    valides = ticket_query.filter(Ticket.validé == True).count()
+    invalides = ticket_query.filter(Ticket.validé == False).count()
 
-    # Répartition par utilisateur (si les tickets sont liés à un user_id)
+    # 📥 Scans
+    scan_query = db.query(Scan)
+    if start:
+        scan_query = scan_query.filter(Scan.timestamp >= start)
+
+    scanned = scan_query.count()
+
+    # 👤 Répartition des scans par utilisateur
     stats_by_user = (
-        db.query(User.username, func.count(Ticket.id))
-        .join(Ticket, Ticket.user_id == User.id)
+        db.query(User.username, func.count(Scan.id))
+        .join(Scan, Scan.user_id == User.id)
     )
     if start:
-        stats_by_user = stats_by_user.filter(Ticket.created_at >= start)
+        stats_by_user = stats_by_user.filter(Scan.timestamp >= start)
 
     stats_by_user = stats_by_user.group_by(User.username).all()
 
@@ -51,7 +59,8 @@ def get_ticket_stats(
         "period": period,
         "total": total,
         "valides": valides,
-        "scanned": valides,
+        "invalides": invalides,
+        "scanned": scanned,
         "scans_by_user": [
             {"user": username, "count": count} for username, count in stats_by_user
         ]
@@ -87,7 +96,6 @@ def get_user_stats(
         "scan_count": scan_count
     }
 
-
 # 🔹 Export CSV utilisateur
 @router.get("/user/{username}/export/csv")
 def export_user_stats_csv(
@@ -111,7 +119,6 @@ def export_user_stats_csv(
         headers={"Content-Disposition": f"attachment; filename={username}_{period}.csv"}
     )
 
-
 # 🔹 Export PDF utilisateur
 @router.get("/user/{username}/export/pdf")
 def export_user_stats_pdf(
@@ -130,3 +137,9 @@ def export_user_stats_pdf(
     c.save()
 
     return FileResponse(filename, media_type="application/pdf", filename=filename)
+
+# 🔹 Liste des utilisateurs (pour menu déroulant)
+@router.get("/users")
+def list_users(db: Session = Depends(get_db)):
+    users = db.query(User.username).all()
+    return [u.username for u in users]
