@@ -45,9 +45,9 @@ def get_ticket_stats(
 
     scanned = scan_query.count()
 
-    # 👤 Répartition des scans par utilisateur
+    # 👤 Répartition des scans par utilisateur (billets uniques scannés)
     stats_by_user = (
-        db.query(User.username, func.count(Scan.id))
+        db.query(User.username, func.count(func.distinct(Scan.ticket_id)))
         .join(Scan, Scan.user_id == User.id)
     )
     if start:
@@ -85,10 +85,10 @@ def get_user_stats(
     if not user:
         return {"error": f"Utilisateur '{username}' introuvable"}
 
-    scan_count = db.query(Scan).filter(
+    scan_count = db.query(func.count(func.distinct(Scan.ticket_id))).filter(
         Scan.user_id == user.id,
         Scan.timestamp >= start
-    ).count()
+    ).scalar()
 
     return {
         "user": username,
