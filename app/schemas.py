@@ -18,6 +18,8 @@ class TicketSchema(BaseModel):
     code: str
     voyageur: str
     validé: bool
+    scanne: bool  # ✅ Ajouté pour refléter le modèle
+    created_at: datetime
 
     class Config:
         orm_mode = True

@@ -43,3 +43,7 @@ async def import_tickets(file: UploadFile = File(...), db: Session = Depends(get
 
     db.commit()
     return {"message": f"{imported} billets importés avec succès"}
+
+@router.get("/export", response_model=List[TicketSchema])
+def export_valid_tickets(db: Session = Depends(get_db)):
+    return db.query(Ticket).filter(Ticket.validé == True).all()
