@@ -6,7 +6,7 @@ from app.auth.utils import get_password_hash
 db = SessionLocal()
 
 # Nom d'utilisateur à créer
-username = "onangasetrag"
+username = "lebayi moly"
 
 # Vérifie si l'utilisateur existe déjà
 existing_user = db.query(User).filter(User.username == username).first()
@@ -14,7 +14,7 @@ if existing_user:
     print(f"Utilisateur déjà existant : {existing_user.username}")
 else:
     # Hash du mot de passe
-    hashed_pw = get_password_hash("Setrag2025.")
+    hashed_pw = get_password_hash("Google99.")
 
     # Création de l'utilisateur
     user = User(username=username, hashed_password=hashed_pw)
