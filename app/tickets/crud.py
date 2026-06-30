@@ -1,16 +1,17 @@
 from sqlalchemy.orm import Session
-from fastapi import HTTPException
 from app.models import Ticket
+from fastapi import HTTPException
 
 def get_all_tickets(db: Session):
     return db.query(Ticket).all()
 
-def create_ticket(db: Session, code: str, voyageur: str, user_id: int):
+def create_ticket(db: Session, code: str, voyageur: str):
     existing = db.query(Ticket).filter(Ticket.code == code).first()
     if existing:
         raise HTTPException(status_code=400, detail="Ce code de ticket existe déjà")
-    ticket = Ticket(code=code, voyageur=voyageur, user_id=user_id)
+    ticket = Ticket(code=code, voyageur=voyageur)
     db.add(ticket)
     db.commit()
     db.refresh(ticket)
     return ticket
+

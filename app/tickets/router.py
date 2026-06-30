@@ -1,28 +1,25 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import List
-import csv
-from io import StringIO
-
 from app.database import get_db
 from app.models import Ticket
 from app.tickets import crud
-from app.schemas import TicketSchema, TicketCreate
 
 router = APIRouter()
+
+from typing import List
+from app.schemas import TicketSchema  # Assure-toi d'importer le schéma
 
 @router.get("/", response_model=List[TicketSchema])
 def list_tickets(db: Session = Depends(get_db)):
     return crud.get_all_tickets(db)
 
-@router.post("/", response_model=TicketSchema)
-def create_ticket(ticket: TicketCreate, db: Session = Depends(get_db)):
-    return crud.create_ticket(
-        db,
-        code=ticket.code,
-        voyageur=ticket.voyageur,
-        user_id=ticket.user_id
-    )
+@router.post("/")
+def create_ticket(code: str, voyageur: str, db: Session = Depends(get_db)):
+    return crud.create_ticket(db, code=code, voyageur=voyageur)
+
+from fastapi import UploadFile, File
+import csv
+from io import StringIO
 
 @router.post("/import")
 async def import_tickets(file: UploadFile = File(...), db: Session = Depends(get_db)):
@@ -46,7 +43,3 @@ async def import_tickets(file: UploadFile = File(...), db: Session = Depends(get
 
     db.commit()
     return {"message": f"{imported} billets importés avec succès"}
-
-@router.get("/export", response_model=List[TicketSchema])
-def export_valid_tickets(db: Session = Depends(get_db)):
-    return db.query(Ticket).filter(Ticket.validé == True).all()

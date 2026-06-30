@@ -13,18 +13,11 @@ class UserCreate(BaseModel):
     username: str
     password: str
 
-class TicketCreate(BaseModel):
-    code: str
-    voyageur: str
-    user_id: int
-
 class TicketSchema(BaseModel):
     id: int
     code: str
     voyageur: str
     validé: bool
-    scanne: bool
-    created_at: datetime
 
     class Config:
         orm_mode = True
